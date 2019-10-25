@@ -1,0 +1,77 @@
+apply plugin: 'com.android.library'
+//apply plugin: 'me.tatarka.retrolambda'
+//apply plugin: 'com.neenbedankt.android-apt'
+
+//apply plugin: 'com.github.dcendents.android-maven'
+//apply plugin: 'com.jfrog.bintray'
+
+android {
+    aaptOptions {
+        cruncherEnabled = true
+        useNewCruncher = false
+    }
+
+    compileSdkVersion rootProject.ext.android.COMPILE_SDK_VERSION
+
+    defaultConfig {
+        minSdkVersion rootProject.ext.android.MIN_SDK_VERSION
+        targetSdkVersion rootProject.ext.android.TARGET_SDK_VERSION
+        versionCode 1
+        versionName "1.0.0"
+
+        testInstrumentationRunner rootProject.ext.dependencies.testInstrumentationRunner
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+
+    buildTypes {
+
+        release {
+            shrinkResources false
+            minifyEnabled false
+            zipAlignEnabled true
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+        }
+    }
+
+    //生成jar包
+    task makeJar(type: Copy) {
+        //删除存在的
+        delete 'build/libs/rxokretrofit.jar'
+        //设置拷贝的文件
+        from('build/intermediates/bundles/debug/')
+        //打进jar包后的文件目录
+        into('build/libs/')
+        //将classes.jar放入build/libs/目录下
+        //include ,exclude参数来设置过滤
+        //（我们只关心classes.jar这个文件）
+        include('classes.jar')
+        //重命名
+        rename ('classes.jar', 'rxokretrofit.jar')
+    }
+    makeJar.dependsOn(build)
+}
+dependencies {
+    implementation fileTree(dir: 'libs', include: ['*.jar'])
+    implementation rootProject.ext.dependencies["appcompat_v7"]
+    implementation rootProject.ext.dependencies["jsr250_api"]
+    annotationProcessor rootProject.ext.dependencies["dagger_compiler"]
+    api rootProject.ext.dependencies["dagger2"]
+    api rootProject.ext.dependencies["rxjava"]
+    api rootProject.ext.dependencies["rxandroid"]
+    api rootProject.ext.dependencies["retrofit2_adapter_rxjava"]
+    api rootProject.ext.dependencies["retrofit2_converter_gson"]
+    api rootProject.ext.dependencies["okhttp3"]
+    api rootProject.ext.dependencies["okhttp3_logging_interceptor"]
+    api (rootProject.ext.dependencies["retrofit2"]) {
+        // exclude Retrofit’s OkHttp peer-dependency module and define your own module import
+        exclude module: 'okhttp'
+    }
+
+    testImplementation 'junit:junit:4.12'
+    androidTestImplementation 'com.android.support.test:runner:1.0.2'
+    androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.2'
+}
